@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import logging
-
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+import logging, octoprint.plugin
+import telegram_bot.commands as commands
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
-from telegram_bot import emojies, keyboards
-import octoprint.plugin
+from __future__ import absolute_import
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -17,53 +15,9 @@ prev_message_id = 0
 prev_message_canceled = False
 
 
-def control(bot, update):
-    global prev_message_id, prev_message_canceled
-    if not prev_message_id == 0 and not prev_message_canceled:
-        bot.editMessageText(text="You called another control panel, so I hid this to make chat looks clear ^.^",
-                            chat_id=update.message.chat_id,
-                            message_id=prev_message_id)
-    prev_message_id = update.message.message_id + 1
-    prev_message_canceled = False
-    update.message.reply_text('Control panel \n X: {}\n Y: {}\n Z: {}'.format(coors[0], coors[1], coors[2]),
-                              reply_markup=keyboards.control_reply_markup)
-
-
-def button(bot, update):
-    global prev_message_canceled
-    query = update.callback_query
-
-    print("Selected option: {}".format(query.data))
-
-    if query.data == '0':
-        bot.editMessageText(text="Nice to work with you :3",
-                            chat_id=query.message.chat_id,
-                            message_id=query.message.message_id)
-        prev_message_canceled = True
-    else:
-        update_coors(query.data)
-        bot.editMessageText(text='Control panel \n X: {}\n Y: {}\n Z: {}'.format(coors[0], coors[1], coors[2]),
-                            chat_id=query.message.chat_id,
-                            message_id=query.message.message_id,
-                            reply_markup=keyboards.control_reply_markup)
-
-
-def update_coors(command):
-    if command == "X-":
-        coors[0] -= 10.0
-    elif command == "X+":
-        coors[0] += 10.0
-    elif command == "Y-":
-        coors[1] -= 10.0
-    elif command == "Y+":
-        coors[1] += 10.0
-    elif command == "XY":
-        coors[0] = 100.0
-        coors[1] = 100.0
-    elif command == "Z-":
-        coors[2] -= 10.0
-    elif command == "Z+":
-        coors[2] += 10.0
+class TelegramPrintBot(octoprint.plugin.StartupPlugin):
+    def on_after_startup(self):
+        self._logger.info("Hello World!")
 
 
 def help(bot, update):
@@ -79,8 +33,8 @@ def main():
     # Create the Updater and pass it your bot's token.
     updater = Updater("348441909:AAE1zt0j_BR_0krs4ewULqkewJzrZTX_YvQ")
 
-    updater.dispatcher.add_handler(CommandHandler('control', control))
-    updater.dispatcher.add_handler(CallbackQueryHandler(button))
+    updater.dispatcher.add_handler(CommandHandler('control', commands.control))
+    updater.dispatcher.add_handler(CallbackQueryHandler(commands.button))
     updater.dispatcher.add_handler(CommandHandler('help', help))
     updater.dispatcher.add_handler(CommandHandler('start', help))
     updater.dispatcher.add_error_handler(error)
@@ -95,3 +49,9 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+__plugin_name__ = "Telegram Print Bot"
+__plugin_version__ = "0.1 BETA"
+__plugin_description__ = "A bot that allow you to control printer via telegram"
+__plugin_implementation__ = TelegramPrintBot()
