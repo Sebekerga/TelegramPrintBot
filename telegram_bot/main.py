@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import logging, octoprint.plugin
-import telegram_bot.commands as commands
+import telegram_bot.commands.control as control_com
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
-from __future__ import absolute_import
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -20,6 +19,14 @@ class TelegramPrintBot(octoprint.plugin.StartupPlugin):
         self._logger.info("Hello World!")
 
 
+def control(bot, update):
+    control_com.control(bot, update)
+
+
+def button(bot, update):
+    control_com.button(bot, update)
+
+
 def help(bot, update):
     update.message.reply_text("Use /control to test this bot.")
 
@@ -33,8 +40,8 @@ def main():
     # Create the Updater and pass it your bot's token.
     updater = Updater("348441909:AAE1zt0j_BR_0krs4ewULqkewJzrZTX_YvQ")
 
-    updater.dispatcher.add_handler(CommandHandler('control', commands.control))
-    updater.dispatcher.add_handler(CallbackQueryHandler(commands.button))
+    updater.dispatcher.add_handler(CommandHandler('control', control))
+    updater.dispatcher.add_handler(CallbackQueryHandler(button))
     updater.dispatcher.add_handler(CommandHandler('help', help))
     updater.dispatcher.add_handler(CommandHandler('start', help))
     updater.dispatcher.add_error_handler(error)
@@ -49,9 +56,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-__plugin_name__ = "Telegram Print Bot"
-__plugin_version__ = "0.1 BETA"
-__plugin_description__ = "A bot that allow you to control printer via telegram"
-__plugin_implementation__ = TelegramPrintBot()
